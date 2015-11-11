@@ -8,25 +8,19 @@ import String exposing (toInt)
 import Result exposing (map2)
 
 type alias Model =
-    { firstValue  : String
-    , secondValue : String
-    , result      : String
+    { values : (String, String)
+    , result : String
     }
 type Action
-    = UpdateFirst String
-    | UpdateSecond String
+    = NewValues (String, String)
 
 update : Action -> Model -> Model
-update a m =
-    case a of
-        UpdateFirst s ->
-        { m | firstValue <- s
-            , result <- result (toInt s) (toInt m.secondValue)
-        }
-        UpdateSecond s ->
-        { m | secondValue <- s
-            , result <- result (toInt m.firstValue) (toInt s) 
-        }
+update x m =
+    case x of
+        NewValues (a,b) ->
+            { values = (a, b)
+            , result = result (toInt a) (toInt b)
+            }
 
 result : Result String Int -> Result String Int -> String
 result a b =
@@ -44,16 +38,16 @@ textInput act address initial =
 view : Signal.Address Action -> Model -> Html
 view address m = 
     div []
-      [ textInput UpdateFirst address m.firstValue
+      [ textInput (\s -> NewValues (s, snd m.values)) address (fst m.values)
       , br [] []
-      , textInput UpdateSecond address m.secondValue
+      , textInput (\s -> NewValues (fst m.values, s)) address (snd m.values)
       , br [] []
       , text (m.result)
       ]
 
 main =
   S.start
-    { model = { firstValue = "", secondValue = "", result = "" }
+    { model = { values = ("",""), result = "" }
     , update = update
     , view = view
     }
